@@ -27,7 +27,7 @@
            USE_INETD=false
            OPTIONS="--daemon --port 69 --bind-address 0.0.0.0 \
                     --retry-timeout 1 --maxthread 100 \
-                    /home/vagrant/tftp_backup"
+                    --chroot /home/vagrant/tftp_backup"
                          
     - name: restart and enable tftp
       systemd:
