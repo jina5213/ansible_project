@@ -1,0 +1,45 @@
+---
+- name: Setup tftp service
+  hosts: localhost
+  become: yes
+  gather_facts: no 
+
+  
+  tasks:
+    - name: install tftp
+      apt: 
+        name: atftpd
+        state: present
+        update_cache: yes  
+                   
+    - name: create tftp root directory
+      file:
+        path: /home/vagrant/tftp_backup
+        state: directory
+        mode: '0777'
+        owner: vagrant
+        group: vagrant
+          
+    - name: config tftp
+      copy:
+         dest: /etc/default/atftpd
+         content: |
+           USE_INETD=false
+           OPTIONS="--daemon --port 69 --bind-address 0.0.0.0 \
+                    --retry-timeout 1 --maxthread 100 \
+                    /home/vagrant/tftp_backup"
+                         
+    - name: restart and enable tftp
+      systemd:
+        name: atftpd
+        state: restarted
+        enabled: yes
+        
+    - name: check if tftp is listening port 69 
+      shell: "netstat -anup | grep ':69' || true"
+      register: tftp_port
+      changed_when: false
+      
+    - name: show tftp status
+      debug:
+         var: tftp_port.stdout

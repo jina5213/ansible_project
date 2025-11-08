@@ -1,0 +1,14 @@
+---
+- import_playbook: tftp_setup.yml
+
+- name: Collect NXOSv running-config
+  hosts: nxosv
+  gather_facts: no
+  
+  tasks: 
+    - name: run command nxosv
+      nxos_command: 
+        commands: 
+          - "copy running-config tftp://192.168.45.55/{{ inventory_hostname }}-config-bk vrf management"
+    
+ 

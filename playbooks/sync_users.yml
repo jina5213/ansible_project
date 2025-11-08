@@ -1,0 +1,71 @@
+---
+- name: Synchronize user account for NXOS
+  hosts: nxosv
+  gather_facts: no 
+  
+  vars:
+    valid_users:
+      - { name: "admin", password: "wlskdi123@", role: "network-admin"}
+      - { name: "jnkim9", password: "wlskdi123@", role: "network-admin"}
+      - { name: "test11", password: "12345", role: "network-operator"}
+  
+  tasks:  
+     - name: debug valid users
+      debug:
+        var: valid_users 
+  
+    - name: collect current users
+      nxos_command:
+        commands:
+          - "show user-account"
+      register: users
+
+    - name: debug users
+      debug:
+        var: users
+        
+    - name: extract usernames (1)
+      set_fact:
+        existing_users: "{{ users.stdout[0] | regex_findall('user:([a-zA-Z0-9_-]+)') | list }}"
+    
+    - name: extract usernames (2)
+      set_fact:
+        desired_users: "{{ valid_users | map(attribute='name') | list }}"
+      
+    - name: extract usernames (3)
+      set_fact:
+        users_to_delete: "{{ existing_users | list | difference(desired_users) | list }}"  
+
+    - name: extract usernames (4)
+      set_fact:
+        users_to_add: "{{ desired_users | list | difference(existing_users) | list }}"
+               
+    - name: show user comparison result
+      debug:
+        msg: 
+          - "Existing users: {{ existing_users }}" 
+          - "Create users: {{ users_to_add }}"
+          - "Delete users: {{ users_to_delete }}"    
+
+    - name: add absent users
+      when: users_to_add | length > 0    # if empty, pass
+      nxos_config:
+        lines: |
+          {% for u in valid_users if u.name in users_to_add %}
+          username {{ u.name }} password {{ u.password }} role {{ u.role }}
+          {% endfor %}
+        
+    - name: remove unused users
+      when: users_to_delete | length > 0    # if empty, pass
+      nxos_config:
+        lines: |
+          {% for u in users_to_delete %}
+          no username {{ u }} 
+          {% endfor %}
+
+    - name: save config       
+      nxos_command:
+        commands:
+          - "copy running-config startup-config"
+                  
+       

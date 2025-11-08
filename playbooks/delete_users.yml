@@ -1,0 +1,23 @@
+---
+- name: Delete user account on NXOS
+  hosts: nxosv 
+  gather_facts: no
+  
+  vars:
+    users_to_delete:
+      - test01
+      - test02
+      - test03
+
+  tasks: 
+    - name: delete username
+      nxos_config:
+        lines: 
+          - "no username {{ item }}"
+      loop: "{{ users_to_delete }}"
+      
+    - name: save config       
+      nxos_command:
+        commands:
+          - "copy running-config startup-config"
+          

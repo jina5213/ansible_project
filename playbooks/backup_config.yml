@@ -1,0 +1,22 @@
+---
+- import_playbook: tftp_setup.yml
+
+- name: Backup NXOSv running-config
+  hosts: nxosv
+  gather_facts: no
+
+  tasks:
+    - name: ensure per-host tftp direcrory
+      file:
+        path: "/home/vagrant/tftp_backup/{{ inventory_hostname }}"
+        state: directory
+        mode: "0777"
+
+    - name: set timestamp
+      set_fact:
+        backup_time: "{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}"
+
+    - name: backup running-config to tftp
+      nxos_command:
+        commands:
+          - "copy running-config tftp://192.168.45.55/{{ inventory_hostname }}/{{ inventory_hostname }}-{{ backup_time }}.cfg vrf management"

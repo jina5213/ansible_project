@@ -1,0 +1,32 @@
+---
+- name: collect device details
+  hosts: nxosv
+  gather_facts: no
+  
+  tasks: 
+    - name: collect version info    # model, serial, version
+      nxos_command:
+        commands:
+          - "show version"
+      register: version_info
+      
+    - name: extract device details
+      set_fact:
+        device_info:
+          hostname: "{{ inventory_hostname }}"
+          model: "{{ '9000v' if 'Nexus9000 9000v' in version_info.stdout[0] else 'Unknown' }}" 
+          serial: "{{ version_info.stdout[0] | regex_search('Processor Board ID\\s*(\\S+)', '\\1') }}" 
+          version: "{{ version_info.stdout[0] | regex_search('NXOS: version\\s*(\\S+)', '\\1') }}"
+    
+    - name: creat report directory
+      file:
+        path: reports/
+        state: directory
+        mode: '0766'
+ 
+    - name: write device_info to file
+      copy:
+        content: |
+          {{ device_info | to_nice_json }}
+        dest: "reports/{{ inventory_hostname }}_info.json"
+          
