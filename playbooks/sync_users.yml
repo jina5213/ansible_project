@@ -10,8 +10,8 @@
       - { name: "test11", password: "12345", role: "network-operator"}
   
   tasks:  
-     - name: debug valid users
-       debug:
+    - name: debug valid users
+      debug:
         var: valid_users 
   
     - name: collect current users
