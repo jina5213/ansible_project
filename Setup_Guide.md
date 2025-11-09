@@ -339,11 +339,15 @@ export SLACK_WEBHOOK_URL="<Slack URL>"
 
 ## 5. 트러블슈팅
 ### 1) SSH 호스트키 미등록 - 초기 접속 실패
-- **증상**
+- **증상:** `The authenticity of host 'x.x.x.x' can't be established.` 로그 발생
+   - 신뢰되지 않은 서버의 공개키 인증 경고로 playbook 실행 실패
+    
 ![SSH 접속 에러](docs/images/trobleshooting/ansible-ssh-fingerprint-error.png)
 
-- **원인:** SSH 접속을 한번도 안한 경우 known-hosts에 등록되어 있지 않아 에러 발생
-- **해결 방안:** ssh admin@192.168.45.77 -> yes로 접속
+- **원인:** Ansible-Server에서 SSH 접속 시도를 한적이 없어 `~/.ssh/known_hosts` 파일에 NXOSv의 공개키가 등록되지 않음
+  - 자동화 환경에서는 `yes` 입력을 수행할 수 없어 인증 실패로 간주
+- **해결 방안:** Ansible-Server에서 직접 접속하여 공개키 등록
+  
 ![SSH 접속 시도](docs/images/trobleshooting/ansible-ssh-access.png)
 
 ### 2) 백업 파일 미생성 - TFTP 경로 오류
@@ -359,16 +363,18 @@ export SLACK_WEBHOOK_URL="<Slack URL>"
   
 ### 4) 정보 수집 불가 - 변수 미정의 오류
 - **증상:** `version_info` 변수에 값이 비어있음
+
+![정보 수집 에러](docs/images/trobleshooting/collect_details_error.png)
+
 - **확인 사항:** 
   - `ansible nxosv-test02 -m nxos_command -a "commands='show version'"` -> 정상 출력 
   - `ansible nxosv-test02 -m debug -a "var=version_info"` -> 
     `"version_info": "VARIABLE IS NOT DEFINED!"` 출력  
 	즉, `version_info` 변수가 playbook 안에서 정의되지 않은 상태
-![정보 수집 에러](docs/images/trobleshooting/collect_details_error.png)
-   
 - **원인:** NXOSv 환경에서는 첫 연결 시 버퍼 초기화 지연으로 일시적으로 변수 등록 누락이 생길 수 있음
 - **해결 방안:** 동일 명령을 재실행하면 정상적으로 변수 값이 반환됨
  
 --- 
 
-> 프로젝트 개선 방향 및 세부 구현 내용은 [README.md](README.md) 에서 확인 할 수 있습니다. 
+> #### **※ 프로젝트 개선 방향 및 세부 구현 내용은 [README.md](README.md) 에서 확인 할 수 있습니다.**
+
