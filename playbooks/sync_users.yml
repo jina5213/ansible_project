@@ -7,7 +7,7 @@
     valid_users:
       - { name: "admin", password: "wlskdi123@", role: "network-admin"}
       - { name: "jnkim9", password: "wlskdi123@", role: "network-admin"}
-      - { name: "test11", password: "12345", role: "network-operator"}
+      - { name: "test11", password: "Cisco123!@#", role: "network-operator"}
   
   tasks:  
     - name: debug valid users
