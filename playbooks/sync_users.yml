@@ -11,7 +11,7 @@
   
   tasks:  
      - name: debug valid users
-      debug:
+       debug:
         var: valid_users 
   
     - name: collect current users
